@@ -6,8 +6,8 @@ length_NR = input.int(defval = 7, title = "Period length of days for Narrow Rang
 atr_threshold = input.float(defval = 15.0, title = "ATR Threshold Percentage", minval = 0, maxval = 100) / 100
 
 // Function to check if current range is narrowest
-NR_Check(range) =>
-    range < ta.lowest(range, length_NR - 1)[1]
+NR_Check(bar_range) =>
+    bar_range < ta.lowest(bar_range, length_NR - 1)[1]
 
 // Calculations
 range_current = high - low
