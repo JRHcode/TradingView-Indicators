@@ -1,0 +1,58 @@
+//@version=6
+indicator("NR(X) Indicator with Follow-Through", overlay = true)
+
+// Inputs
+length_NR = input.int(defval = 7, title = "Period length of days for Narrow Range", minval = 2)
+atr_threshold = input.float(defval = 15.0, title = "ATR Threshold Percentage", minval = 0, maxval = 100) / 100
+
+// Function to check if current range is narrowest
+NR_Check(range) =>
+    range < ta.lowest(range, length_NR - 1)[1]
+
+// Calculations
+range_current = high - low
+range_prev = high[1] - low[1]
+range_ATR = ta.atr(length_NR)
+
+// Check if previous bar was NR day
+range_isCurrentLowest = NR_Check(range_current)
+range_isPrevLowest = NR_Check(range_prev)
+
+// Original breakout detection (kept from original code)
+range_Break_Direction = range_isPrevLowest ? close > high[1] and range_ATR > range_ATR[1] ? 1 : close < low[1] and range_ATR < range_ATR[1] ? -1 : 0 : 0
+range_Volume_Surge = volume > ta.sma(volume, length_NR)[1] ? 1 : 0
+range_Break_Direction_Final = range_Break_Direction == 1 ? range_Break_Direction + range_Volume_Surge : range_Break_Direction == -1 ? range_Break_Direction - range_Volume_Surge : 0
+
+// NEW: Follow-through logic for day after NR day
+// If previous bar was an NR day, check current bar's performance
+nr_day_high = high[1]
+nr_day_low = low[1]
+nr_day_atr = range_ATR[1]
+
+// Calculate thresholds (15% of ATR)
+atr_offset = nr_day_atr * atr_threshold
+upper_threshold = nr_day_high + atr_offset
+lower_threshold = nr_day_low - atr_offset
+
+// Check if we're on the day after an NR day
+is_day_after_nr = range_isPrevLowest
+
+// Strong breakout: reached ATR threshold
+strong_breakout = is_day_after_nr and (high >= upper_threshold or low <= lower_threshold)
+
+// Weak breakout: broke range but didn't reach threshold
+weak_breakout = is_day_after_nr and not strong_breakout and (high > nr_day_high or low < nr_day_low)
+
+// Visual outputs
+// White diamond for current NR day (original)
+plotshape(range_isCurrentLowest ? low : na, style = shape.diamond, color = color.new(color.white, 0), location = location.belowbar, size = size.small, title = "NR Day")
+
+// Green diamond for strong follow-through (day after NR)
+plotshape(strong_breakout ? low : na, style = shape.diamond, color = color.new(color.green, 0), location = location.abovebar, size = size.normal, title = "Strong Breakout")
+
+// Red diamond for weak follow-through (day after NR)
+plotshape(weak_breakout ? low : na, style = shape.diamond, color = color.new(color.red, 0), location = location.abovebar, size = size.normal, title = "Weak Breakout")
+
+// Original breakout labels (kept for reference)
+plotshape(range_Break_Direction_Final > 0 ? low : na, style = shape.labeldown, color = color.new(color.green, 0), text = "Break\nUP", textcolor = color.white, location = location.abovebar, title = "Break Up")
+plotshape(range_Break_Direction_Final < 0 ? high : na, style = shape.labelup, color = color.new(color.red, 0), text = "Break\nDOWN", textcolor = color.white, location = location.belowbar, title = "Break Down")
