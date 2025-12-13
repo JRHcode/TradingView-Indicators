@@ -1,0 +1,44 @@
+//@version=6
+indicator("Inside Day with Results", overlay = true)
+
+// Inputs
+length_ATR = input.int(defval = 7, title = "ATR Period Length", minval = 2)
+atr_threshold = input.float(defval = 15.0, title = "ATR Threshold Percentage", minval = 0, maxval = 100) / 100
+
+// Inside Day Detection
+// An inside day is when both high and low are within the previous day's range
+insideDay = high < high[1] and low > low[1]
+insideDayPrev = high[1] < high[2] and low[1] > low[2]
+
+// ATR Calculation
+range_ATR = ta.atr(length_ATR)
+
+// Follow-through logic for day after Inside Day
+// If previous bar was an Inside Day, check current bar's performance
+inside_day_high = high[1]
+inside_day_low = low[1]
+inside_day_atr = range_ATR[1]
+
+// Calculate thresholds (15% of ATR)
+atr_offset = inside_day_atr * atr_threshold
+upper_threshold = inside_day_high + atr_offset
+lower_threshold = inside_day_low - atr_offset
+
+// Check if we're on the day after an Inside Day
+is_day_after_inside = insideDayPrev
+
+// Strong breakout: reached ATR threshold
+strong_breakout = is_day_after_inside and (high >= upper_threshold or low <= lower_threshold)
+
+// Weak breakout: broke range but didn't reach threshold
+weak_breakout = is_day_after_inside and not strong_breakout and (high > inside_day_high or low < inside_day_low)
+
+// Visual outputs
+// Blue triangle for current Inside Day
+plotshape(insideDay ? low : na, style = shape.triangleup, color = color.new(color.blue, 0), location = location.belowbar, size = size.small, title = "Inside Day")
+
+// Green diamond for strong follow-through (day after Inside Day)
+plotshape(strong_breakout ? low : na, style = shape.diamond, color = color.new(color.green, 0), location = location.abovebar, size = size.normal, title = "Strong Breakout")
+
+// Red diamond for weak follow-through (day after Inside Day)
+plotshape(weak_breakout ? low : na, style = shape.diamond, color = color.new(color.red, 0), location = location.abovebar, size = size.normal, title = "Weak Breakout")
