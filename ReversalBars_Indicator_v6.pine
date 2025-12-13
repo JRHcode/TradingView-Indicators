@@ -1,0 +1,60 @@
+//@version=6
+indicator("Reversal Bars with Results", overlay = true)
+
+// Inputs
+length_ATR = input.int(defval = 40, title = "ATR Period Length", minval = 2)
+atr_threshold = input.float(defval = 15.0, title = "ATR Threshold Percentage", minval = 0, maxval = 100) / 100
+bullColor = input.color(color.new(color.green, 0), "Bullish Reversal Color")
+bearColor = input.color(color.new(color.red, 0), "Bearish Reversal Color")
+showLabels = input.bool(true, "Show Labels")
+
+// Reversal Bar Detection
+// Bullish: low < low[1] AND close > close[1] AND open <= close
+// Bearish: high > high[1] AND close < close[1] AND open >= close
+bullishReversal = (low < low[1]) and (close > close[1]) and (open <= close)
+bearishReversal = (high > high[1]) and (close < close[1]) and (open >= close)
+
+// Previous bar reversal detection
+bullishReversalPrev = (low[1] < low[2]) and (close[1] > close[2]) and (open[1] <= close[1])
+bearishReversalPrev = (high[1] > high[2]) and (close[1] < close[2]) and (open[1] >= close[1])
+
+// Check if previous bar was any reversal
+anyReversalPrev = bullishReversalPrev or bearishReversalPrev
+
+// ATR Calculation
+range_ATR = ta.atr(length_ATR)
+
+// Follow-through logic for day after Reversal Bar
+// If previous bar was a Reversal Bar, check current bar's performance
+reversal_bar_high = high[1]
+reversal_bar_low = low[1]
+reversal_bar_atr = range_ATR[1]
+
+// Calculate thresholds (15% of ATR)
+atr_offset = reversal_bar_atr * atr_threshold
+upper_threshold = reversal_bar_high + atr_offset
+lower_threshold = reversal_bar_low - atr_offset
+
+// Check if we're on the day after a Reversal Bar
+is_day_after_reversal = anyReversalPrev
+
+// Strong breakout: reached ATR threshold
+strong_breakout = is_day_after_reversal and (high >= upper_threshold or low <= lower_threshold)
+
+// Weak breakout: broke range but didn't reach threshold
+weak_breakout = is_day_after_reversal and not strong_breakout and (high > reversal_bar_high or low < reversal_bar_low)
+
+// Visual outputs
+// Original reversal bar signals
+plotshape(bullishReversal, title="Bullish Reversal", location=location.belowbar, color=bullColor, style=shape.triangleup, text="Bull", textcolor=bullColor, size=size.small, display=showLabels ? display.all : display.none)
+plotshape(bearishReversal, title="Bearish Reversal", location=location.abovebar, color=bearColor, style=shape.triangledown, text="Bear", textcolor=bearColor, size=size.small, display=showLabels ? display.all : display.none)
+
+// Background color for reversal bars
+bgcolor(bullishReversal ? color.new(bullColor, 80) : na)
+bgcolor(bearishReversal ? color.new(bearColor, 80) : na)
+
+// Green diamond for strong follow-through (day after Reversal Bar)
+plotshape(strong_breakout ? low : na, style = shape.diamond, color = color.new(color.green, 0), location = location.abovebar, size = size.normal, title = "Strong Breakout")
+
+// Red diamond for weak follow-through (day after Reversal Bar)
+plotshape(weak_breakout ? low : na, style = shape.diamond, color = color.new(color.red, 0), location = location.abovebar, size = size.normal, title = "Weak Breakout")
