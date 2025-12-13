@@ -1,5 +1,5 @@
 //@version=6
-indicator("NR(X) Indicator with Follow-Through", overlay = true)
+indicator("NR(X) Indicator with Results", overlay = true)
 
 // Inputs
 length_NR = input.int(defval = 7, title = "Period length of days for Narrow Range", minval = 2)
