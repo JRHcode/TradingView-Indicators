@@ -3,6 +3,7 @@ indicator("NR(X) Indicator with Results", overlay = true)
 
 // Inputs
 length_NR = input.int(defval = 7, title = "Period length of days for Narrow Range", minval = 2)
+length_ATR = input.int(defval = 40, title = "ATR Period Length", minval = 2)
 atr_threshold = input.float(defval = 15.0, title = "ATR Threshold Percentage", minval = 0, maxval = 100) / 100
 
 // Function to check if current range is narrowest
@@ -12,7 +13,7 @@ NR_Check(bar_range) =>
 // Calculations
 range_current = high - low
 range_prev = high[1] - low[1]
-range_ATR = ta.atr(length_NR)
+range_ATR = ta.atr(length_ATR)
 
 // Check if previous bar was NR day
 range_isCurrentLowest = NR_Check(range_current)

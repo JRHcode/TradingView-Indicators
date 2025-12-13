@@ -2,7 +2,7 @@
 indicator("Inside Day with Results", overlay = true)
 
 // Inputs
-length_ATR = input.int(defval = 7, title = "ATR Period Length", minval = 2)
+length_ATR = input.int(defval = 40, title = "ATR Period Length", minval = 2)
 atr_threshold = input.float(defval = 15.0, title = "ATR Threshold Percentage", minval = 0, maxval = 100) / 100
 
 // Inside Day Detection
