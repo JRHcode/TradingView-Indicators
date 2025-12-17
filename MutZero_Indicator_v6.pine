@@ -45,11 +45,15 @@ lower_threshold = prev_day_low - atr_offset
 // 1. Reached BOTH profit targets (+15% ATR AND -15% ATR)
 // 2. Reached upper target without breaking below previous day's low (clean upside)
 // 3. Reached lower target without breaking above previous day's high (clean downside)
+// 4. Closed above previous day's high
+// 5. Closed below previous day's low
 reached_both_thresholds = (high >= upper_threshold) and (low <= lower_threshold)
 reached_upper_only_clean = (high >= upper_threshold) and (low > prev_day_low)
 reached_lower_only_clean = (low <= lower_threshold) and (high < prev_day_high)
+closed_above_high = close > prev_day_high
+closed_below_low = close < prev_day_low
 
-winning_trade = valid_breakout and (reached_both_thresholds or reached_upper_only_clean or reached_lower_only_clean)
+winning_trade = valid_breakout and (reached_both_thresholds or reached_upper_only_clean or reached_lower_only_clean or closed_above_high or closed_below_low)
 
 // Losing trade: met minimum breakout requirement but didn't qualify as a winning trade
 losing_trade = valid_breakout and not winning_trade
