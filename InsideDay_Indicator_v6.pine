@@ -15,6 +15,10 @@ use_date_filter = input.bool(defval = false, title = "Use Date Range Filter")
 start_date = input.time(defval = timestamp("2020-01-01 00:00"), title = "Start Date")
 end_date = input.time(defval = timestamp("2025-12-31 23:59"), title = "End Date")
 
+// Profitability Settings
+starting_account = input.float(defval = 10000.0, title = "Starting Account ($)", minval = 0)
+risk_per_trade = input.float(defval = 2.0, title = "Risk Per Trade (%)", minval = 0, maxval = 100)
+
 // Inside Day Detection
 // An inside day is when both high and low are within the previous day's range
 insideDay = high < high[1] and low > low[1]
@@ -68,16 +72,22 @@ in_date_range = use_date_filter ? (time >= start_date and time <= end_date) : tr
 // Count trades within date range
 var int winning_count = 0
 var int losing_count = 0
+var float account_balance = starting_account
 
 if strong_breakout and in_date_range
     winning_count += 1
+    // Add risk% to account for winning trade
+    account_balance := account_balance + (account_balance * (risk_per_trade / 100))
 
 if losing_trade and in_date_range
     losing_count += 1
+    // Subtract risk% from account for losing trade
+    account_balance := account_balance - (account_balance * (risk_per_trade / 100))
 
 // Calculate statistics
 total_trades = winning_count + losing_count
 win_rate = total_trades > 0 ? (winning_count / total_trades) * 100 : 0
+profit_loss_pct = ((account_balance - starting_account) / starting_account) * 100
 
 // Visual outputs
 // Blue triangle for current Inside Day
@@ -91,7 +101,7 @@ plotshape(losing_trade ? low : na, style = shape.diamond, color = color.new(colo
 
 // Statistics Table
 if show_stats
-    var table stats_table = table.new(position.top_right, 2, 5, border_width = 1)
+    var table stats_table = table.new(position.top_right, 2, 8, border_width = 1)
 
     if barstate.islast
         // Header
@@ -100,11 +110,11 @@ if show_stats
 
         // Winning Trades
         table.cell(stats_table, 0, 1, "Winning:", text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
-        table.cell(stats_table, 1, 1, str.tostring(winning_count), text_color = color.green, bgcolor = color.new(color.gray, 50), text_size = size.normal)
+        table.cell(stats_table, 1, 1, str.tostring(winning_count), text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
 
         // Losing Trades
         table.cell(stats_table, 0, 2, "Losing:", text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
-        table.cell(stats_table, 1, 2, str.tostring(losing_count), text_color = color.red, bgcolor = color.new(color.gray, 50), text_size = size.normal)
+        table.cell(stats_table, 1, 2, str.tostring(losing_count), text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
 
         // Win Rate
         table.cell(stats_table, 0, 3, "Win Rate:", text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
@@ -113,3 +123,15 @@ if show_stats
         // Total Trades
         table.cell(stats_table, 0, 4, "Total:", text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
         table.cell(stats_table, 1, 4, str.tostring(total_trades), text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
+
+        // Starting Account
+        table.cell(stats_table, 0, 5, "Starting $:", text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
+        table.cell(stats_table, 1, 5, str.format("${0,number,#.##}", starting_account), text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
+
+        // Final Account
+        table.cell(stats_table, 0, 6, "Final $:", text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
+        table.cell(stats_table, 1, 6, str.format("${0,number,#.##}", account_balance), text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
+
+        // P/L %
+        table.cell(stats_table, 0, 7, "P/L %:", text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
+        table.cell(stats_table, 1, 7, str.format("{0,number,#.##}%", profit_loss_pct), text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
