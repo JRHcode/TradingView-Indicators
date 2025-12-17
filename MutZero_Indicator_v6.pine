@@ -1,0 +1,40 @@
+//@version=6
+indicator("MutZero Indicator", overlay = true)
+
+// Inputs
+length_ATR = input.int(defval = 40, title = "ATR Period Length", minval = 2)
+atr_threshold = input.float(defval = 15.0, title = "ATR Threshold Percentage", minval = 0, maxval = 100) / 100
+
+// ATR Calculation
+range_ATR = ta.atr(length_ATR)
+
+// Analyze EVERY bar - treat each day as a potential setup
+// Check the current bar's performance relative to the previous bar
+prev_day_high = high[1]
+prev_day_low = low[1]
+prev_day_atr = range_ATR[1]
+
+// Calculate thresholds (15% of ATR)
+atr_offset = prev_day_atr * atr_threshold
+upper_threshold = prev_day_high + atr_offset
+lower_threshold = prev_day_low - atr_offset
+
+// Winning trade scenarios:
+// 1. Reached BOTH profit targets (+15% ATR AND -15% ATR)
+// 2. Reached upper target without breaking below previous day's low (clean upside)
+// 3. Reached lower target without breaking above previous day's high (clean downside)
+reached_both_thresholds = (high >= upper_threshold) and (low <= lower_threshold)
+reached_upper_only_clean = (high >= upper_threshold) and (low > prev_day_low)
+reached_lower_only_clean = (low <= lower_threshold) and (high < prev_day_high)
+
+winning_trade = reached_both_thresholds or reached_upper_only_clean or reached_lower_only_clean
+
+// Losing trade: broke previous day's range but didn't qualify as a winning trade
+losing_trade = (high > prev_day_high or low < prev_day_low) and not winning_trade
+
+// Visual outputs
+// Green diamond for winning trade
+plotshape(winning_trade ? low : na, style = shape.diamond, color = color.new(color.green, 0), location = location.abovebar, size = size.normal, title = "Winning Trade")
+
+// Black diamond for losing trade
+plotshape(losing_trade ? low : na, style = shape.diamond, color = color.new(color.black, 0), location = location.abovebar, size = size.normal, title = "Losing Trade")
