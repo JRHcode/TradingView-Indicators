@@ -37,4 +37,4 @@ losing_trade = (high > prev_day_high or low < prev_day_low) and not winning_trad
 plotshape(winning_trade ? low : na, style = shape.diamond, color = color.new(color.green, 0), location = location.abovebar, size = size.normal, title = "Winning Trade")
 
 // Black diamond for losing trade
-plotshape(losing_trade ? low : na, style = shape.diamond, color = color.new(color.black, 0), location = location.abovebar, size = size.normal, title = "Losing Trade")
+plotshape(losing_trade ? low : na, style = shape.diamond, color = color.new(color.red, 0), location = location.abovebar, size = size.normal, title = "Losing Trade")
