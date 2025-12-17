@@ -41,8 +41,15 @@ is_day_after_nr = range_isPrevLowest
 // Strong breakout: reached ATR threshold
 strong_breakout = is_day_after_nr and (high >= upper_threshold or low <= lower_threshold)
 
-// Weak breakout: broke range but didn't reach threshold
-weak_breakout = is_day_after_nr and not strong_breakout and (high > nr_day_high or low < nr_day_low)
+// Losing trade: broke range but didn't reach threshold, then reversed to opposite side
+// Long setup loss: broke above NR high, didn't reach upper threshold, then hit NR low
+losing_trade_long = is_day_after_nr and high > nr_day_high and high < upper_threshold and low <= nr_day_low
+// Short setup loss: broke below NR low, didn't reach lower threshold, then hit NR high
+losing_trade_short = is_day_after_nr and low < nr_day_low and low > lower_threshold and high >= nr_day_high
+losing_trade = losing_trade_long or losing_trade_short
+
+// Weak breakout: broke range but didn't reach threshold (excluding losing trades)
+weak_breakout = is_day_after_nr and not strong_breakout and not losing_trade and (high > nr_day_high or low < nr_day_low)
 
 // Visual outputs
 // White diamond for current NR day (original)
@@ -53,6 +60,9 @@ plotshape(strong_breakout ? low : na, style = shape.diamond, color = color.new(c
 
 // Red diamond for weak follow-through (day after NR)
 plotshape(weak_breakout ? low : na, style = shape.diamond, color = color.new(color.red, 0), location = location.abovebar, size = size.normal, title = "Weak Breakout")
+
+// Black diamond for losing trade (day after NR)
+plotshape(losing_trade ? low : na, style = shape.diamond, color = color.new(color.black, 0), location = location.abovebar, size = size.normal, title = "Losing Trade")
 
 // Original breakout labels (kept for reference)
 plotshape(range_Break_Direction_Final > 0 ? low : na, style = shape.labeldown, color = color.new(color.green, 0), text = "Break\nUP", textcolor = color.white, location = location.abovebar, title = "Break Up")
