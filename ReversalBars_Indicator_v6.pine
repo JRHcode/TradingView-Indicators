@@ -4,6 +4,8 @@ indicator("Reversal Bars with Results", overlay = true)
 // Inputs
 length_ATR = input.int(defval = 40, title = "ATR Period Length", minval = 2)
 atr_threshold = input.float(defval = 15.0, title = "ATR Threshold Percentage", minval = 0, maxval = 100) / 100
+min_breakout_pips = input.float(defval = 3.0, title = "Minimum Breakout (Pips)", minval = 0)
+pip_value = input.float(defval = 0.0001, title = "Pip Value (0.0001 for Forex, 0.01 for JPY pairs, 1.0 for stocks)")
 bullColor = input.color(color.new(color.green, 0), "Bullish Reversal Color")
 bearColor = input.color(color.new(color.red, 0), "Bearish Reversal Color")
 showLabels = input.bool(true, "Show Labels")
@@ -30,6 +32,14 @@ reversal_bar_high = high[1]
 reversal_bar_low = low[1]
 reversal_bar_atr = range_ATR[1]
 
+// Calculate minimum breakout threshold in price
+min_breakout_amount = min_breakout_pips * pip_value
+
+// Check if breakout meets minimum pip requirement
+broke_high_enough = high > (reversal_bar_high + min_breakout_amount)
+broke_low_enough = low < (reversal_bar_low - min_breakout_amount)
+valid_breakout = broke_high_enough or broke_low_enough
+
 // Calculate thresholds (15% of ATR)
 atr_offset = reversal_bar_atr * atr_threshold
 upper_threshold = reversal_bar_high + atr_offset
@@ -46,10 +56,10 @@ reached_both_thresholds = (high >= upper_threshold) and (low <= lower_threshold)
 reached_upper_only_clean = (high >= upper_threshold) and (low > reversal_bar_low)
 reached_lower_only_clean = (low <= lower_threshold) and (high < reversal_bar_high)
 
-strong_breakout = is_day_after_reversal and (reached_both_thresholds or reached_upper_only_clean or reached_lower_only_clean)
+strong_breakout = is_day_after_reversal and valid_breakout and (reached_both_thresholds or reached_upper_only_clean or reached_lower_only_clean)
 
-// Losing trade: broke Reversal Bar range but didn't qualify as a winning trade
-losing_trade = is_day_after_reversal and (high > reversal_bar_high or low < reversal_bar_low) and not strong_breakout
+// Losing trade: met minimum breakout requirement but didn't qualify as a winning trade
+losing_trade = is_day_after_reversal and valid_breakout and not strong_breakout
 
 // Visual outputs
 // Original reversal bar signals
