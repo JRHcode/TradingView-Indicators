@@ -43,11 +43,15 @@ is_day_after_inside = insideDayPrev
 // 1. Reached BOTH profit targets (+15% ATR AND -15% ATR)
 // 2. Reached upper target without breaking below Inside Day low (clean upside)
 // 3. Reached lower target without breaking above Inside Day high (clean downside)
+// 4. Closed above Inside Day high
+// 5. Closed below Inside Day low
 reached_both_thresholds = (high >= upper_threshold) and (low <= lower_threshold)
 reached_upper_only_clean = (high >= upper_threshold) and (low > inside_day_low)
 reached_lower_only_clean = (low <= lower_threshold) and (high < inside_day_high)
+closed_above_high = close > inside_day_high
+closed_below_low = close < inside_day_low
 
-strong_breakout = is_day_after_inside and valid_breakout and (reached_both_thresholds or reached_upper_only_clean or reached_lower_only_clean)
+strong_breakout = is_day_after_inside and valid_breakout and (reached_both_thresholds or reached_upper_only_clean or reached_lower_only_clean or closed_above_high or closed_below_low)
 
 // Losing trade: met minimum breakout requirement but didn't qualify as a winning trade
 losing_trade = is_day_after_inside and valid_breakout and not strong_breakout
