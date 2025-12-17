@@ -3,12 +3,13 @@ indicator("MutZero Indicator", overlay = true)
 
 // Inputs
 length_ATR = input.int(defval = 40, title = "ATR Period Length", minval = 2)
-atr_threshold = input.float(defval = 15.0, title = "ATR Threshold Percentage", minval = 0, maxval = 100) / 100
+take_profit_pct = input.float(defval = 15.0, title = "Take Profit (% of ATR)", minval = 0, maxval = 100)
 min_breakout_pips = input.float(defval = 3.0, title = "Minimum Breakout (Pips)", minval = 0)
 pip_value = input.float(defval = 0.0001, title = "Pip Value (0.0001 for Forex, 0.01 for JPY pairs, 1.0 for stocks)")
 
 // ATR Calculation
 range_ATR = ta.atr(length_ATR)
+atr_threshold = take_profit_pct / 100
 
 // Analyze EVERY bar - treat each day as a potential setup
 // Check the current bar's performance relative to the previous bar
