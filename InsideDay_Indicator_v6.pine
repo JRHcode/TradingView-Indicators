@@ -49,22 +49,57 @@ lower_threshold = inside_day_low - atr_offset
 // Check if we're on the day after an Inside Day
 is_day_after_inside = insideDayPrev
 
-// Winning trade scenarios:
-// 1. Reached BOTH profit targets (+15% ATR AND -15% ATR)
-// 2. Reached upper target without breaking below Inside Day low (clean upside)
-// 3. Reached lower target without breaking above Inside Day high (clean downside)
-// 4. Closed above Inside Day high
-// 5. Closed below Inside Day low
+// Check if both sides were broken
+broke_both_sides = broke_high_enough and broke_low_enough
+
+// Standard winning conditions (for when only one side is broken)
 reached_both_thresholds = (high >= upper_threshold) and (low <= lower_threshold)
 reached_upper_only_clean = (high >= upper_threshold) and (low > inside_day_low)
 reached_lower_only_clean = (low <= lower_threshold) and (high < inside_day_high)
 closed_above_high = close > inside_day_high
 closed_below_low = close < inside_day_low
 
-strong_breakout = is_day_after_inside and valid_breakout and (reached_both_thresholds or reached_upper_only_clean or reached_lower_only_clean or closed_above_high or closed_below_low)
+// Winning/Losing trade logic
+strong_breakout = false
+losing_trade = false
 
-// Losing trade: met minimum breakout requirement but didn't qualify as a winning trade
-losing_trade = is_day_after_inside and valid_breakout and not strong_breakout
+if is_day_after_inside and valid_breakout
+    if broke_both_sides
+        // Both sides broken - calculate net P&L to determine win/loss
+
+        // Long side P&L
+        long_entry = inside_day_high + min_breakout_amount
+        long_pnl = 0.0
+        if high >= upper_threshold
+            // Long TP hit
+            long_pnl := atr_offset
+        else
+            // Long stopped out at Inside Day low
+            long_pnl := inside_day_low - long_entry  // Negative
+
+        // Short side P&L
+        short_entry = inside_day_low - min_breakout_amount
+        short_pnl = 0.0
+        if low <= lower_threshold
+            // Short TP hit
+            short_pnl := atr_offset
+        else
+            // Short stopped out at Inside Day high
+            short_pnl := short_entry - inside_day_high  // Negative
+
+        // Net P&L determines win/loss
+        net_pnl = long_pnl + short_pnl
+
+        if net_pnl > 0
+            strong_breakout := true
+        else
+            losing_trade := true
+    else
+        // Only one side broken - use standard logic
+        if reached_both_thresholds or reached_upper_only_clean or reached_lower_only_clean or closed_above_high or closed_below_low
+            strong_breakout := true
+        else
+            losing_trade := true
 
 // Check if current bar is within date range
 in_date_range = use_date_filter ? (time >= start_date and time <= end_date) : true
