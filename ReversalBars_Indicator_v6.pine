@@ -38,11 +38,18 @@ lower_threshold = reversal_bar_low - atr_offset
 // Check if we're on the day after a Reversal Bar
 is_day_after_reversal = anyReversalPrev
 
-// Strong breakout: reached ATR threshold
-strong_breakout = is_day_after_reversal and (high >= upper_threshold or low <= lower_threshold)
+// Winning trade scenarios:
+// 1. Reached BOTH profit targets (+15% ATR AND -15% ATR)
+// 2. Reached upper target without breaking below Reversal Bar low (clean upside)
+// 3. Reached lower target without breaking above Reversal Bar high (clean downside)
+reached_both_thresholds = (high >= upper_threshold) and (low <= lower_threshold)
+reached_upper_only_clean = (high >= upper_threshold) and (low > reversal_bar_low)
+reached_lower_only_clean = (low <= lower_threshold) and (high < reversal_bar_high)
 
-// Weak breakout: broke range but didn't reach threshold
-weak_breakout = is_day_after_reversal and not strong_breakout and (high > reversal_bar_high or low < reversal_bar_low)
+strong_breakout = is_day_after_reversal and (reached_both_thresholds or reached_upper_only_clean or reached_lower_only_clean)
+
+// Losing trade: broke Reversal Bar range but didn't qualify as a winning trade
+losing_trade = is_day_after_reversal and (high > reversal_bar_high or low < reversal_bar_low) and not strong_breakout
 
 // Visual outputs
 // Original reversal bar signals
@@ -53,8 +60,8 @@ plotshape(bearishReversal, title="Bearish Reversal", location=location.abovebar,
 bgcolor(bullishReversal ? color.new(bullColor, 80) : na)
 bgcolor(bearishReversal ? color.new(bearColor, 80) : na)
 
-// Green diamond for strong follow-through (day after Reversal Bar)
-plotshape(strong_breakout ? low : na, style = shape.diamond, color = color.new(color.green, 0), location = location.abovebar, size = size.normal, title = "Strong Breakout")
+// Green diamond for winning trade (day after Reversal Bar)
+plotshape(strong_breakout ? low : na, style = shape.diamond, color = color.new(color.green, 0), location = location.abovebar, size = size.normal, title = "Winning Trade")
 
-// Red diamond for weak follow-through (day after Reversal Bar)
-plotshape(weak_breakout ? low : na, style = shape.diamond, color = color.new(color.red, 0), location = location.abovebar, size = size.normal, title = "Weak Breakout")
+// Black diamond for losing trade (day after Reversal Bar)
+plotshape(losing_trade ? low : na, style = shape.diamond, color = color.new(color.black, 0), location = location.abovebar, size = size.normal, title = "Losing Trade")

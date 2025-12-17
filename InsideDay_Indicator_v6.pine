@@ -27,18 +27,25 @@ lower_threshold = inside_day_low - atr_offset
 // Check if we're on the day after an Inside Day
 is_day_after_inside = insideDayPrev
 
-// Strong breakout: reached ATR threshold
-strong_breakout = is_day_after_inside and (high >= upper_threshold or low <= lower_threshold)
+// Winning trade scenarios:
+// 1. Reached BOTH profit targets (+15% ATR AND -15% ATR)
+// 2. Reached upper target without breaking below Inside Day low (clean upside)
+// 3. Reached lower target without breaking above Inside Day high (clean downside)
+reached_both_thresholds = (high >= upper_threshold) and (low <= lower_threshold)
+reached_upper_only_clean = (high >= upper_threshold) and (low > inside_day_low)
+reached_lower_only_clean = (low <= lower_threshold) and (high < inside_day_high)
 
-// Weak breakout: broke range but didn't reach threshold
-weak_breakout = is_day_after_inside and not strong_breakout and (high > inside_day_high or low < inside_day_low)
+strong_breakout = is_day_after_inside and (reached_both_thresholds or reached_upper_only_clean or reached_lower_only_clean)
+
+// Losing trade: broke Inside Day range but didn't qualify as a winning trade
+losing_trade = is_day_after_inside and (high > inside_day_high or low < inside_day_low) and not strong_breakout
 
 // Visual outputs
 // Blue triangle for current Inside Day
 plotshape(insideDay ? low : na, style = shape.triangleup, color = color.new(color.blue, 0), location = location.belowbar, size = size.small, title = "Inside Day")
 
-// Green diamond for strong follow-through (day after Inside Day)
-plotshape(strong_breakout ? low : na, style = shape.diamond, color = color.new(color.green, 0), location = location.abovebar, size = size.normal, title = "Strong Breakout")
+// Green diamond for winning trade (day after Inside Day)
+plotshape(strong_breakout ? low : na, style = shape.diamond, color = color.new(color.green, 0), location = location.abovebar, size = size.normal, title = "Winning Trade")
 
-// Red diamond for weak follow-through (day after Inside Day)
-plotshape(weak_breakout ? low : na, style = shape.diamond, color = color.new(color.red, 0), location = location.abovebar, size = size.normal, title = "Weak Breakout")
+// Black diamond for losing trade (day after Inside Day)
+plotshape(losing_trade ? low : na, style = shape.diamond, color = color.new(color.black, 0), location = location.abovebar, size = size.normal, title = "Losing Trade")
