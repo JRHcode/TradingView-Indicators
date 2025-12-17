@@ -63,5 +63,5 @@ bgcolor(bearishReversal ? color.new(bearColor, 80) : na)
 // Green diamond for winning trade (day after Reversal Bar)
 plotshape(strong_breakout ? low : na, style = shape.diamond, color = color.new(color.green, 0), location = location.abovebar, size = size.normal, title = "Winning Trade")
 
-// Black diamond for losing trade (day after Reversal Bar)
-plotshape(losing_trade ? low : na, style = shape.diamond, color = color.new(color.black, 0), location = location.abovebar, size = size.normal, title = "Losing Trade")
+// Red diamond for losing trade (day after Reversal Bar)
+plotshape(losing_trade ? low : na, style = shape.diamond, color = color.new(color.red, 0), location = location.abovebar, size = size.normal, title = "Losing Trade")
