@@ -54,11 +54,15 @@ is_day_after_nr = range_isPrevLowest
 // 1. Reached BOTH profit targets (+15% ATR AND -15% ATR)
 // 2. Reached upper target without breaking below NR low (clean upside)
 // 3. Reached lower target without breaking above NR high (clean downside)
+// 4. Closed above NR day high
+// 5. Closed below NR day low
 reached_both_thresholds = (high >= upper_threshold) and (low <= lower_threshold)
 reached_upper_only_clean = (high >= upper_threshold) and (low > nr_day_low)
 reached_lower_only_clean = (low <= lower_threshold) and (high < nr_day_high)
+closed_above_high = close > nr_day_high
+closed_below_low = close < nr_day_low
 
-strong_breakout = is_day_after_nr and valid_breakout and (reached_both_thresholds or reached_upper_only_clean or reached_lower_only_clean)
+strong_breakout = is_day_after_nr and valid_breakout and (reached_both_thresholds or reached_upper_only_clean or reached_lower_only_clean or closed_above_high or closed_below_low)
 
 // Losing trade: met minimum breakout requirement but didn't qualify as a winning trade
 losing_trade = is_day_after_nr and valid_breakout and not strong_breakout
