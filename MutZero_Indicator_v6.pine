@@ -95,11 +95,11 @@ if show_stats
 
         // Winning Trades
         table.cell(stats_table, 0, 1, "Winning:", text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
-        table.cell(stats_table, 1, 1, str.tostring(winning_count), text_color = color.green, bgcolor = color.new(color.gray, 50), text_size = size.normal)
+        table.cell(stats_table, 1, 1, str.tostring(winning_count), text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
 
         // Losing Trades
         table.cell(stats_table, 0, 2, "Losing:", text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
-        table.cell(stats_table, 1, 2, str.tostring(losing_count), text_color = color.red, bgcolor = color.new(color.gray, 50), text_size = size.normal)
+        table.cell(stats_table, 1, 2, str.tostring(losing_count), text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
 
         // Win Rate
         table.cell(stats_table, 0, 3, "Win Rate:", text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
@@ -115,10 +115,8 @@ if show_stats
 
         // Final Account
         table.cell(stats_table, 0, 6, "Final $:", text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
-        profit_color = account_balance >= starting_account ? color.green : color.red
-        table.cell(stats_table, 1, 6, str.format("${0,number,#.##}", account_balance), text_color = profit_color, bgcolor = color.new(color.gray, 50), text_size = size.normal)
+        table.cell(stats_table, 1, 6, str.format("${0,number,#.##}", account_balance), text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
 
         // P/L %
         table.cell(stats_table, 0, 7, "P/L %:", text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
-        pl_color = profit_loss_pct >= 0 ? color.green : color.red
-        table.cell(stats_table, 1, 7, str.format("{0,number,#.##}%", profit_loss_pct), text_color = pl_color, bgcolor = color.new(color.gray, 50), text_size = size.normal)
+        table.cell(stats_table, 1, 7, str.format("{0,number,#.##}%", profit_loss_pct), text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
