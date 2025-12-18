@@ -108,6 +108,11 @@ in_date_range = use_date_filter ? (time >= start_date and time <= end_date) : tr
 var int winning_count = 0
 var int losing_count = 0
 var float account_balance = starting_account
+var float total_win_amount = 0.0
+var float total_loss_amount = 0.0
+var int current_streak = 0
+var int longest_win_streak = 0
+var int longest_loss_streak = 0
 
 if winning_trade and in_date_range
     winning_count += 1
@@ -121,6 +126,15 @@ if winning_trade and in_date_range
     // Actual profit % = risk % × R:R ratio
     profit_pct = risk_per_trade * rr_ratio
     account_balance := account_balance + (account_balance * (profit_pct / 100))
+    total_win_amount += profit_pct
+
+    // Update win streak
+    if current_streak >= 0
+        current_streak += 1
+    else
+        current_streak := 1
+    if current_streak > longest_win_streak
+        longest_win_streak := current_streak
 
 if losing_trade and in_date_range
     losing_count += 1
@@ -142,11 +156,23 @@ if losing_trade and in_date_range
     loss_ratio = actual_loss_pips / pip_risk
     loss_pct = risk_per_trade * loss_ratio
     account_balance := account_balance - (account_balance * (loss_pct / 100))
+    total_loss_amount += loss_pct
+
+    // Update loss streak
+    if current_streak <= 0
+        current_streak -= 1
+    else
+        current_streak := -1
+    if math.abs(current_streak) > longest_loss_streak
+        longest_loss_streak := math.abs(current_streak)
 
 // Calculate statistics
 total_trades = winning_count + losing_count
 win_rate = total_trades > 0 ? (winning_count / total_trades) * 100 : 0
 profit_loss_pct = ((account_balance - starting_account) / starting_account) * 100
+avg_win = winning_count > 0 ? total_win_amount / winning_count : 0
+avg_loss = losing_count > 0 ? total_loss_amount / losing_count : 0
+avg_win_loss_ratio = avg_loss > 0 ? avg_win / avg_loss : 0
 
 // Visual outputs
 // Green diamond for winning trade
@@ -157,7 +183,7 @@ plotshape(losing_trade ? low : na, style = shape.diamond, color = color.new(colo
 
 // Statistics Table
 if show_stats
-    var table stats_table = table.new(position.top_right, 2, 8, border_width = 1)
+    var table stats_table = table.new(position.top_right, 2, 13, border_width = 1)
 
     if barstate.islast
         // Header
@@ -180,14 +206,34 @@ if show_stats
         table.cell(stats_table, 0, 4, "Total:", text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
         table.cell(stats_table, 1, 4, str.tostring(total_trades), text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
 
+        // Average Winning Trade
+        table.cell(stats_table, 0, 5, "Avg Win:", text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
+        table.cell(stats_table, 1, 5, str.format("{0,number,#.##}%", avg_win), text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
+
+        // Average Losing Trade
+        table.cell(stats_table, 0, 6, "Avg Loss:", text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
+        table.cell(stats_table, 1, 6, str.format("{0,number,#.##}%", avg_loss), text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
+
+        // Average Win:Loss Ratio
+        table.cell(stats_table, 0, 7, "Avg W:L Ratio:", text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
+        table.cell(stats_table, 1, 7, str.format("{0,number,#.##}", avg_win_loss_ratio), text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
+
+        // Longest Win Streak
+        table.cell(stats_table, 0, 8, "Longest Win Streak:", text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
+        table.cell(stats_table, 1, 8, str.tostring(longest_win_streak), text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
+
+        // Longest Loss Streak
+        table.cell(stats_table, 0, 9, "Longest Loss Streak:", text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
+        table.cell(stats_table, 1, 9, str.tostring(longest_loss_streak), text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
+
         // Starting Account
-        table.cell(stats_table, 0, 5, "Starting $:", text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
-        table.cell(stats_table, 1, 5, str.format("${0,number,#.##}", starting_account), text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
+        table.cell(stats_table, 0, 10, "Starting $:", text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
+        table.cell(stats_table, 1, 10, str.format("${0,number,#.##}", starting_account), text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
 
         // Final Account
-        table.cell(stats_table, 0, 6, "Final $:", text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
-        table.cell(stats_table, 1, 6, str.format("${0,number,#.##}", account_balance), text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
+        table.cell(stats_table, 0, 11, "Final $:", text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
+        table.cell(stats_table, 1, 11, str.format("${0,number,#.##}", account_balance), text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
 
         // P/L %
-        table.cell(stats_table, 0, 7, "P/L %:", text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
-        table.cell(stats_table, 1, 7, str.format("{0,number,#.##}%", profit_loss_pct), text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
+        table.cell(stats_table, 0, 12, "P/L %:", text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
+        table.cell(stats_table, 1, 12, str.format("{0,number,#.##}%", profit_loss_pct), text_color = color.white, bgcolor = color.new(color.gray, 50), text_size = size.normal)
