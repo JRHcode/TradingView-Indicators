@@ -1,0 +1,19 @@
+//@version=6
+indicator(title="ATR%", shorttitle="ATR%", overlay=false)
+
+// Inputs
+length = input.int(14, minval=1, title="ATR Period Length")
+iPercent = input.int(30, minval=1, maxval=99, title="Percentage (% of ATR to plot)")
+
+// Calculate ATR on current timeframe
+atr_value = ta.atr(length)
+
+// Apply percentage
+percentage = iPercent * 0.01
+atr_percent = atr_value * percentage
+
+// Plot
+plot(atr_percent, color=color.red, linewidth=2, title="ATR%")
+
+// Optional: Add a zero line for reference
+hline(0, "Zero", color=color.gray, linestyle=hline.style_dotted)
