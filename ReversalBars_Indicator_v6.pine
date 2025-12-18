@@ -131,8 +131,8 @@ var float account_balance = starting_account
 if strong_breakout and in_date_range
     winning_count += 1
     // Calculate actual profit based on risk-to-reward ratio
-    // Pip risk = entry to stop = range + buffer
-    pip_risk = (reversal_bar_high - reversal_bar_low) / pip_value + min_breakout_pips
+    // Pip risk = entry to stop = (High + buffer) - (Low - buffer) = range + 2*buffer
+    pip_risk = (reversal_bar_high - reversal_bar_low) / pip_value + (2 * min_breakout_pips)
     // Pip profit = TP - buffer cost
     pip_profit = (atr_offset / pip_value) - min_breakout_pips
     // R:R ratio
