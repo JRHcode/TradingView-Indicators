@@ -143,8 +143,24 @@ if strong_breakout and in_date_range
 
 if losing_trade and in_date_range
     losing_count += 1
-    // Subtract full risk% from account for losing trade
-    account_balance := account_balance - (account_balance * (risk_per_trade / 100))
+    // Calculate actual loss based on where price closed, not full risk
+    pip_risk = (nr_day_high - nr_day_low) / pip_value + (2 * min_breakout_pips)
+
+    // Determine which direction was broken and calculate actual loss
+    actual_loss_pips = 0.0
+    if broke_high_enough and not broke_low_enough
+        // Long trade - calculate loss from entry to close
+        long_entry = nr_day_high + min_breakout_amount
+        actual_loss_pips := (long_entry - close) / pip_value
+    else if broke_low_enough and not broke_high_enough
+        // Short trade - calculate loss from entry to close
+        short_entry = nr_day_low - min_breakout_amount
+        actual_loss_pips := (close - short_entry) / pip_value
+
+    // Calculate loss percentage based on actual pips lost vs total risk
+    loss_ratio = actual_loss_pips / pip_risk
+    loss_pct = risk_per_trade * loss_ratio
+    account_balance := account_balance - (account_balance * (loss_pct / 100))
 
 // Calculate statistics
 total_trades = winning_count + losing_count
