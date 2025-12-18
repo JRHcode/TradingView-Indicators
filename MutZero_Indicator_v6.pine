@@ -87,11 +87,19 @@ if valid_breakout
         else
             losing_trade := true
     else
-        // Only one side broken - use standard logic
-        if reached_both_thresholds or reached_upper_only_clean or reached_lower_only_clean or closed_above_entry or closed_below_entry
-            winning_trade := true
-        else
-            losing_trade := true
+        // Only one side broken - check direction-specific conditions
+        if broke_high_enough and not broke_low_enough
+            // Broke high only - check upper conditions
+            if reached_upper_only_clean or closed_above_entry
+                winning_trade := true
+            else
+                losing_trade := true
+        else if broke_low_enough and not broke_high_enough
+            // Broke low only - check lower conditions
+            if reached_lower_only_clean or closed_below_entry
+                winning_trade := true
+            else
+                losing_trade := true
 
 // Check if current bar is within date range
 in_date_range = use_date_filter ? (time >= start_date and time <= end_date) : true
