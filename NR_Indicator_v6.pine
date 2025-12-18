@@ -67,8 +67,8 @@ broke_both_sides = broke_high_enough and broke_low_enough
 reached_both_thresholds = (high >= upper_threshold) and (low <= lower_threshold)
 reached_upper_only_clean = (high >= upper_threshold) and (low > nr_day_low)
 reached_lower_only_clean = (low <= lower_threshold) and (high < nr_day_high)
-closed_above_high = close > nr_day_high
-closed_below_low = close < nr_day_low
+closed_above_entry = close > (nr_day_high + min_breakout_amount)
+closed_below_entry = close < (nr_day_low - min_breakout_amount)
 
 // Winning/Losing trade logic
 strong_breakout = false
@@ -107,7 +107,7 @@ if is_day_after_nr and valid_breakout
             losing_trade := true
     else
         // Only one side broken - use standard logic
-        if reached_both_thresholds or reached_upper_only_clean or reached_lower_only_clean or closed_above_high or closed_below_low
+        if reached_both_thresholds or reached_upper_only_clean or reached_lower_only_clean or closed_above_entry or closed_below_entry
             strong_breakout := true
         else
             losing_trade := true
