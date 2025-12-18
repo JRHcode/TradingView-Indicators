@@ -3,7 +3,9 @@ indicator("Reversal Bars with Results", overlay = true)
 
 // Inputs
 length_ATR = input.int(defval = 40, title = "ATR Period Length", minval = 2)
-atr_threshold = input.float(defval = 15.0, title = "ATR Threshold Percentage", minval = 0, maxval = 100) / 100
+tp_mode = input.string(defval = "ATR %", title = "Take Profit Mode", options = ["ATR %", "Fixed Pips"])
+take_profit_pct = input.float(defval = 15.0, title = "Take Profit (% of ATR)", minval = 0, maxval = 100)
+take_profit_pips = input.float(defval = 50.0, title = "Take Profit (Pips)", minval = 0)
 min_breakout_pips = input.float(defval = 3.0, title = "Minimum Breakout (Pips)", minval = 0)
 pip_value = input.float(defval = 0.0001, title = "Pip Value (0.0001 for Forex, 0.01 for JPY pairs, 1.0 for stocks)")
 bullColor = input.color(color.new(color.green, 0), "Bullish Reversal Color")
@@ -50,8 +52,8 @@ broke_high_enough = high > (reversal_bar_high + min_breakout_amount)
 broke_low_enough = low < (reversal_bar_low - min_breakout_amount)
 valid_breakout = broke_high_enough or broke_low_enough
 
-// Calculate thresholds (15% of ATR)
-atr_offset = reversal_bar_atr * atr_threshold
+// Calculate thresholds based on selected mode
+atr_offset = tp_mode == "ATR %" ? reversal_bar_atr * (take_profit_pct / 100) : take_profit_pips * pip_value
 upper_threshold = reversal_bar_high + atr_offset
 lower_threshold = reversal_bar_low - atr_offset
 
